@@ -3,7 +3,6 @@ from sklearn.cluster import DBSCAN
 import folium
 from datetime import datetime, timedelta
 import branca
-from geopy import distance
 
 
 '''
@@ -110,9 +109,12 @@ for point in gps_pontos:
 
 coordinates = np.array([(point[0], point[1]) for point in gps_pontos])
 
-#dbscan = DBSCAN(eps=0.001, min_samples=1) 
-#labels = dbscan.fit_predict(coordinates)
+dbscan = DBSCAN(eps=0.001, min_samples=1) 
+labels = dbscan.fit_predict(coordinates)
 
+
+for i, label in enumerate(labels):
+    print(f"Ponto {i}: Latitude: {gps_pontos[i][0]}, Longitude: {gps_pontos[i][1]}, Timestamp: {gps_pontos[i][2]}, Cluster: {label}")
     
 cluster_colors = {
     0: 'red',
@@ -130,27 +132,14 @@ mapa = folium.Map(location=[latitudeEscola, longitudeEscola], zoom_start=13)
 
 
 for i, (lat, lon) in enumerate(coordinates):
-    
-    if(distance.distance((latitudeCasa,longitudeCasa),(lat,lon)).m < 50):
-        folium.CircleMarker(
-            location=[lat, lon],
-            radius=3,  
-            color= 'green',  
-            fill=True, 
-            fill_color=False,    
-            fill_opacity=0.4  
-        ).add_to(mapa)
-        
-    else:
-         folium.CircleMarker(
-            location=[lat, lon],
-            radius=3,  
-            color= 'red',  
-            fill=True, 
-            fill_color=False,    
-            fill_opacity=0.4  
-        ).add_to(mapa)
-        
+    folium.CircleMarker(
+        location=[lat, lon],
+        radius=3,  
+        color=cluster_colors[labels[i]],  
+        fill=True, 
+        fill_color=cluster_colors[labels[i]],    
+        fill_opacity=0.4  
+    ).add_to(mapa)
     
 folium.Circle(
     location=[latitudeCasa, longitudeCasa],
