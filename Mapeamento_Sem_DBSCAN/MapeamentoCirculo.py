@@ -57,13 +57,13 @@ gps_pontos.append((latitudeCasa,longitudeCasa,timestampCasa))
 
 #Adicionando pontos fora da área da casa (50m)
 gps_pontos.append((-4.565037528718174, -44.61683020932483,datetime(2024, 9, 14, 8, 36, 45))) #63 metros
-gps_pontos.append((-4.564774617279997, -44.61786034954978,datetime(2024,9,14,8,50,30))) #50.58 metros
+gps_pontos.append((-4.564774617279997, -44.61786034954978,datetime(2024,9,14,9,50,30))) #50.58 metros
 
 #Adicionando pontos dentro da área da casa (50m)
 gps_pontos.append((-4.564775818409348, -44.61766389641023,datetime(2024, 9, 14, 8, 33, 45))),   #43 metros
 gps_pontos.append((-4.56555750197922, -44.61771374596735,datetime(2024, 9, 14, 8, 35, 45))),   #49 metros
 gps_pontos.append((-4.564937677414269, -44.61734643034952,datetime(2024, 9, 14, 8, 47, 45))),   #49 metros
-
+gps_pontos.sort(key=lambda x: x[2])
 coordinates = np.array([(point[0], point[1]) for point in gps_pontos])
 
 
@@ -116,9 +116,9 @@ for i, (lat, lon) in enumerate(coordinates):
         ).add_to(mapa)
          
          if emCasa:
-            emCasa = False
             timestampFim = gps_pontos[i][2]
             tempoEmCasa.append([timestampInicio,timestampFim])
+            emCasa = False
          
          pontosForaCasa.append((lat, lon, gps_pontos[i][2]))    
 
@@ -132,6 +132,10 @@ folium.Circle(
     fill_color='blue',
     fill_opacity=0.2
 ).add_to(mapa)
+
+if emCasa:
+    timestampFim = datetime(2024, 9, 14, 23, 59, 59)
+    tempoEmCasa.append([timestampInicio, timestampFim])
 
 
 print("Timestamps dos pontos dentro de casa:")
