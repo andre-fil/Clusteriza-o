@@ -9,13 +9,13 @@ from geopy import distance
 '''
 Essa abordagem visa traçar um buffer a partir de um ponto central
 
-Adicionalemnte, usou-se DBSCAN para separar os pontos em clusters
+
 
 '''
 
 #Definindo coordenadas para teste
 gps_pontos = []
-
+'''
 latitudeEscola = -4.569038553893695
 longitudeEscola = -44.61631006359516
 timestampEscola = datetime(2024, 8, 30, 8, 30, 45)
@@ -45,73 +45,27 @@ longitudeTrabalho2 = -44.580924
 timestampTrabalho2 = datetime(2024, 8, 30, 16, 40, 45)
 
 gps_pontos.append((latitudeTrabalho2,longitudeTrabalho2,timestampTrabalho2))
-
+'''
 
 
 latitudeCasa = -4.565148908640259
 longitudeCasa = -44.61757713316441
-timestampCasa = datetime.now()
+timestampCasa = datetime(2024, 9, 14, 8, 30, 45)
 
 gps_pontos.append((latitudeCasa,longitudeCasa,timestampCasa))
 
 
+#Adicionando pontos fora da área da casa (50m)
+gps_pontos.append((-4.565037528718174, -44.61683020932483,datetime(2024, 9, 14, 8, 36, 45))) #63 metros
+gps_pontos.append((-4.564774617279997, -44.61786034954978,datetime(2024,9,14,8,50,30))) #50.58 metros
 
-
-latitudeRuaCasa = -4.565109
-longitudeRuaCasa = -44.617429
-timestampRuaCasa = datetime(2024,9,1,20,15,30)
-
-gps_pontos.append((latitudeRuaCasa,longitudeRuaCasa,timestampRuaCasa))
-
-
-latitudeRuaVizinha = -4.5655453770115795
-longitudeRuaVizinha = -44.61707380378729
-timestampRuaVizinha = datetime(2024,9,1,20,30,30)
-
-gps_pontos.append((latitudeRuaVizinha,longitudeRuaVizinha,timestampRuaVizinha))
-
-
-latitudeRuaFora = -4.565970317059791
-longitudeRuaFora = -44.61895133339691
-timestampRuaFora = datetime(2024,9,1,20,30,30)
-
-gps_pontos.append((latitudeRuaFora,longitudeRuaFora,timestampRuaFora))
-
-'''
-def gerarPontos(latitude, longitude, start_time, interval_seconds, num_pontos):
-    pontos = []
-    current_time = start_time
-    for _ in range(num_pontos):
-        pontos.append((latitude, longitude, current_time))
-        current_time += timedelta(seconds=interval_seconds)
-    return pontos
-
-'''
-#latitude = -23.550520  
-#longitude = -46.633308  
-#start_time = datetime.now()  
-#interval_seconds = 60  
-#num_pontos = 5
-
-
-#gps_pontos = gerarPontos(latitudeCFGC, longitudeCFGC, start_time, interval_seconds, num_pontos)
-
-
-
-
-
-'''
-for point in gps_pontos:
-    print(f"Latitude: {point[0]}, Longitude: {point[1]}, Timestamp: {point[2]}")
-'''
-
-
-
+#Adicionando pontos dentro da área da casa (50m)
+gps_pontos.append((-4.564775818409348, -44.61766389641023,datetime(2024, 9, 14, 8, 33, 45))),   #43 metros
+gps_pontos.append((-4.56555750197922, -44.61771374596735,datetime(2024, 9, 14, 8, 35, 45))),   #49 metros
+gps_pontos.append((-4.564937677414269, -44.61734643034952,datetime(2024, 9, 14, 8, 47, 45))),   #49 metros
 
 coordinates = np.array([(point[0], point[1]) for point in gps_pontos])
 
-#dbscan = DBSCAN(eps=0.001, min_samples=1) 
-#labels = dbscan.fit_predict(coordinates)
 
     
 cluster_colors = {
@@ -125,9 +79,12 @@ cluster_colors = {
 }
 
 
-mapa = folium.Map(location=[latitudeEscola, longitudeEscola], zoom_start=13)
+mapa = folium.Map(location=[latitudeCasa, longitudeCasa], zoom_start=13)
 
-
+pontosDentroCasa = []
+pontosForaCasa = []
+emCasa = False
+tempoEmCasa = []
 
 for i, (lat, lon) in enumerate(coordinates):
     
@@ -139,7 +96,14 @@ for i, (lat, lon) in enumerate(coordinates):
             fill=True, 
             fill_color=False,    
             fill_opacity=0.4  
+            
         ).add_to(mapa)
+        
+        if not emCasa:
+            timestampInicio = gps_pontos[i][2]
+            emCasa = True
+        pontosDentroCasa.append((lat, lon, gps_pontos[i][2]))
+        
         
     else:
          folium.CircleMarker(
@@ -150,16 +114,34 @@ for i, (lat, lon) in enumerate(coordinates):
             fill_color=False,    
             fill_opacity=0.4  
         ).add_to(mapa)
-        
-    
+         
+         if emCasa:
+            emCasa = False
+            timestampFim = gps_pontos[i][2]
+            tempoEmCasa.append([timestampInicio,timestampFim])
+         
+         pontosForaCasa.append((lat, lon, gps_pontos[i][2]))    
+
+#pontosDentroCasa = pontosDentroCasa.sort()
+#pontosForaCasa = pontosForaCasa.sort()
 folium.Circle(
     location=[latitudeCasa, longitudeCasa],
     radius=50,  # Raio em metros
-    color='green',  # Cor da borda do círculo
+    color='green',  
     fill=True,
     fill_color='blue',
     fill_opacity=0.2
 ).add_to(mapa)
+
+
+print("Timestamps dos pontos dentro de casa:")
+for ponto in pontosDentroCasa:
+    print(f"Coordenadas: ({ponto[0]}, {ponto[1]}) - Timestamp: {ponto[2]}")
+
+
+print(tempoEmCasa)
+tempo_total_minutos = sum((fim - inicio).total_seconds() / 60 for inicio, fim in tempoEmCasa)
+print(f"Tempo total gasto em casa: {tempo_total_minutos} minutos")
 
 
 
@@ -174,9 +156,6 @@ legend_html = '''
     </div>
 '''
 
-# Adicionando a legenda ao mapa
-mapa.get_root().html.add_child(branca.element.Html(data=legend_html, script=True))
 
-
-mapa.save("clusters_mapa.html")
+mapa.save("Mapeamento_Sem_DBSCAN/clusters_mapa.html")
 mapa

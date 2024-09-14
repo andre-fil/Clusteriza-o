@@ -59,7 +59,7 @@ timestampRuaCasa = datetime(2024,9,1,20,15,30)
 
 gps_pontos.append((latitudeRuaCasa,longitudeRuaCasa,timestampRuaCasa))
 
-
+gps_pontos.append((-4.562584806227442, -44.614710747357094,timestampRuaCasa))
 '''
 def gerarPontos(latitude, longitude, start_time, interval_seconds, num_pontos):
     pontos = []
@@ -93,7 +93,7 @@ for point in gps_pontos:
 
 coordinates = np.array([(point[0], point[1]) for point in gps_pontos])
 
-dbscan = DBSCAN(eps=0.001, min_samples=1) 
+dbscan = DBSCAN(eps=0.001, min_samples=2) 
 labels = dbscan.fit_predict(coordinates)
 
 
@@ -127,5 +127,5 @@ for i, (lat, lon) in enumerate(coordinates):
     
 
 
-mapa.save("clusters_mapa.html")
+mapa.save("Mapeamento_simples/clusters_mapa.html")
 mapa

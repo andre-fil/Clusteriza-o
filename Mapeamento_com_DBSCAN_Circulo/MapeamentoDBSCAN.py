@@ -4,10 +4,12 @@ import folium
 from geopy.distance import geodesic
 from collections import defaultdict
 from datetime import datetime
-
+import random
 
 '''
 Essa abordagem, visou-se traçar um circulo a partir do ponto central do cluster gerado pelo DBSCAN
+
+*** Verificar parâmetros do DBSCAN nos trabalhos
 
 '''
 
@@ -75,36 +77,6 @@ timestampRuaFora = datetime(2024,9,1,20,30,30)
 
 gps_pontos.append((latitudeRuaFora,longitudeRuaFora,timestampRuaFora))
 
-'''
-def gerarPontos(latitude, longitude, start_time, interval_seconds, num_pontos):
-    pontos = []
-    current_time = start_time
-    for _ in range(num_pontos):
-        pontos.append((latitude, longitude, current_time))
-        current_time += timedelta(seconds=interval_seconds)
-    return pontos
-
-'''
-#latitude = -23.550520  
-#longitude = -46.633308  
-#start_time = datetime.now()  
-#interval_seconds = 60  
-#num_pontos = 5
-
-
-#gps_pontos = gerarPontos(latitudeCFGC, longitudeCFGC, start_time, interval_seconds, num_pontos)
-
-
-
-
-
-'''
-for point in gps_pontos:
-    print(f"Latitude: {point[0]}, Longitude: {point[1]}, Timestamp: {point[2]}")
-'''
-
-
-
 
 coordinates = np.array([(point[0], point[1]) for point in gps_pontos])
 
@@ -146,11 +118,11 @@ for i, (lat, lon) in enumerate(coordinates):
 for label, centroide in centroides.items():
     folium.Circle(
         location=[centroide[0], centroide[1]],
-        radius=raios[label],  # Raio em metros
+        radius=raios[label], 
         color='blue',
         fill=True,
         fill_opacity=0.2
     ).add_to(mapa)
 
 # Salvando o mapa
-mapa.save("clusters_com_circulos.html")
+mapa.save("Mapeamento_com_DBSCAN_Circulo/clusters_com_circulos.html")
